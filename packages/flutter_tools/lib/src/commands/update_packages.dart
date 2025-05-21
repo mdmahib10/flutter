@@ -320,11 +320,6 @@ class UpdatePackagesCommand extends FlutterCommand {
     }
   }
 
-  String _versionWithCaret(String version) => version.startsWith('^') ? version : '^$version';
-
-  String _versionWithoutCaret(String version) =>
-      version.startsWith('^') ? version.substring(1) : version;
-
   Map<String, Map<String, String>> _fetchDeps(YamlEditor yamlEditor) {
     final Map<String, Map<String, String>> dependencies = <String, Map<String, String>>{};
     for (final String depType in <String>['dependencies', 'dev_dependencies']) {
@@ -496,3 +491,8 @@ class UpdatePackagesCommand extends FlutterCommand {
 }
 
 enum RelaxMode { any, caret, strict }
+
+String _versionWithCaret(String version) => version.startsWith('^') ? version : '^$version';
+
+String _versionWithoutCaret(String version) =>
+    version.startsWith('^') ? version.substring(1) : version;
