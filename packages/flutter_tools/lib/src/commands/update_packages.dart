@@ -271,7 +271,7 @@ class UpdatePackagesCommand extends FlutterCommand {
   void _relaxDeps(YamlEditor yamlEditor, RelaxMode relaxMode, Map<String, String> fixedDeps) {
     for (final String depType in <String>['dependencies', 'dev_dependencies']) {
       final Map<dynamic, dynamic> map =
-          yamlEditor.parseAt(<String>[depType]) as YamlMap? ?? <dynamic, dynamic>{};
+          yamlEditor.parseAt(<String>[depType], orElse: () => YamlMap()) as YamlMap;
       for (final MapEntry<dynamic, dynamic> dep in map.entries) {
         final String packageName = dep.key as String;
         final dynamic version = dep.value;
@@ -303,7 +303,7 @@ class UpdatePackagesCommand extends FlutterCommand {
     for (final String depType in <String>['dependencies', 'dev_dependencies']) {
       dependencies[depType] = <String, String>{};
       final Map<dynamic, dynamic> map =
-          yamlEditor.parseAt(<String>[depType]) as YamlMap? ?? <dynamic, dynamic>{};
+          yamlEditor.parseAt(<String>[depType], orElse: () => YamlMap()) as YamlMap;
       for (final MapEntry<dynamic, dynamic> dep in map.entries) {
         final String packageName = dep.key as String;
         final dynamic restriction = dep.value;
@@ -320,7 +320,7 @@ class UpdatePackagesCommand extends FlutterCommand {
     final YamlEditor yamlEditor = YamlEditor(pubspecFile.readAsStringSync());
     for (final String depType in <String>['dependencies', 'dev_dependencies']) {
       final Map<dynamic, dynamic> map =
-          yamlEditor.parseAt(<String>[depType]) as YamlMap? ?? <dynamic, dynamic>{};
+          yamlEditor.parseAt(<String>[depType], orElse: () => YamlMap()) as YamlMap;
       for (final MapEntry<dynamic, dynamic> dep in map.entries) {
         final String packageName = dep.key as String;
         if (dependencies[depType]!.containsKey(packageName)) {
