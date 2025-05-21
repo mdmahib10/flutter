@@ -213,11 +213,9 @@ class UpdatePackagesCommand extends FlutterCommand {
       ]) {
         _updatePubspec(package, deps);
       }
-
-      _writeHashesToPubspecs(packages);
     }
     globals.printStatus('Running pub get only...');
-    if (updateHashes) {
+    if (updateHashes || forceUpgrade || cherryPick != null) {
       _writeHashesToPubspecs(packages);
     }
     _verifyPubspecs(packages);

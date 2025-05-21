@@ -18,7 +18,7 @@ dependencies:
   #   //packages/flutter_tools/lib/src/commands/update_packages.dart
   # and run
   #   flutter update-packages --force-upgrade
-
+  flutter_gallery_assets: any
   args: any
   web: any
 
@@ -162,4 +162,4 @@ flutter:
       fonts:
         - asset: packages/flutter_gallery_assets/fonts/GalleryIcons.ttf
 
-# PUBSPEC CHECKSUM: ln2m5t
+# PUBSPEC CHECKSUM: 7h27ng

@@ -16,6 +16,7 @@ dependencies:
   #   //packages/flutter_tools/lib/src/commands/update_packages.dart
   # and run
   #   flutter update-packages --force-upgrade
+  flutter_gallery_assets: any
 
   path: any
 
@@ -33,4 +34,4 @@ flutter:
     - packages/flutter_gallery_assets/people/square/ali.png
     - packages/flutter_gallery_assets/places/india_chettinad_silk_maker.png
 
-# PUBSPEC CHECKSUM: bara0e
+# PUBSPEC CHECKSUM: uc95r8

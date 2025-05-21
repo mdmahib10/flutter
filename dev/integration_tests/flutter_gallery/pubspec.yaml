@@ -12,11 +12,13 @@ dependencies:
   intl: any
   string_scanner: any
   url_launcher: any
+  cupertino_icons: any
   video_player: any
   scoped_model: any
 
   # Also update dev/benchmarks/complex_layout/pubspec.yaml
   # and dev/benchmarks/macrobenchmarks/pubspec.yaml
+  flutter_gallery_assets: any
 
   path: any
   vector_math: any
@@ -204,4 +206,4 @@ flutter:
       - asset: packages/flutter_gallery_assets/fonts/merriweather/Merriweather-Regular.ttf
       - asset: packages/flutter_gallery_assets/fonts/merriweather/Merriweather-Light.ttf
 
-# PUBSPEC CHECKSUM: j4ht2m
+# PUBSPEC CHECKSUM: ifdv5d
