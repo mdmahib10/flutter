@@ -299,7 +299,7 @@ class UpdatePackagesCommand extends FlutterCommand {
         }
       }
     }
-    pubspecFile.writeAsString(yamlEditor.toString());
+    pubspecFile.writeAsStringSync(yamlEditor.toString());
   }
 
   void _verifyPubspecs(List<Directory> packages) {
@@ -378,7 +378,7 @@ class UpdatePackagesCommand extends FlutterCommand {
   void _writeHashesToPubspecs(List<Directory> packages) {
     globals.printStatus('Writing hashes to pubspecs...');
     for (final Directory directory in packages) {
-      globals.printStatus('Reading pubspec.yaml from ${directory.path}');
+      globals.printTrace('Reading pubspec.yaml from ${directory.path}');
       final File pubspecFile = directory.childFile('pubspec.yaml');
       String pubspec = pubspecFile.readAsStringSync();
       final String actualChecksum = _computeChecksum(pubspec);
