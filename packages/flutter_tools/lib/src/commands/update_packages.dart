@@ -164,18 +164,6 @@ class UpdatePackagesCommand extends FlutterCommand {
       globals.printStatus('Upgrading packages...');
     }
     final FlutterProject project = FlutterProject.fromDirectory(rootDirectory);
-
-    final String pubspecContents = project.pubspecFile.readAsStringSync();
-    final YamlEditor yamlEditor = YamlEditor(pubspecContents);
-
-    final YamlMap deps = yamlEditor.parseAt(<String>['dependencies']) as YamlMap;
-    print(deps);
-    for (final MapEntry<dynamic, dynamic> dep in deps.entries) {
-      yamlEditor.update(<Object?>['dependencies', dep.key], 'any');
-    }
-
-    project.pubspecFile.writeAsStringSync(yamlEditor.toString());
-
     final List<Directory> packages = <Directory>[...runner!.getRepoPackages(), rootDirectory];
 
     if (!updateHashes) {
@@ -196,6 +184,19 @@ class UpdatePackagesCommand extends FlutterCommand {
       _writeHashesToPubspecs(packages);
     } else if (forceUpgrade) {
       globals.printStatus('Upgrading packages versions...');
+
+      final String pubspecContents = project.pubspecFile.readAsStringSync();
+      final YamlEditor yamlEditor = YamlEditor(pubspecContents);
+
+      final YamlMap deps = yamlEditor.parseAt(<String>['dependencies']) as YamlMap;
+      for (final MapEntry<dynamic, dynamic> dep in deps.entries) {
+        final String packageName = dep.key as String;
+        if (!kManuallyPinnedDependencies.containsKey(packageName) && dep.value is String) {
+          yamlEditor.update(<Object?>['dependencies', packageName], 'any');
+        }
+      }
+
+      project.pubspecFile.writeAsStringSync(yamlEditor.toString());
 
       await pub.interactively(
         <String>['upgrade', '--major-versions'],
