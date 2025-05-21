@@ -59,6 +59,10 @@ class UpdatePackagesCommand extends FlutterCommand {
         negatable: false,
       )
       ..addFlag(
+        _keyUpgradeMajor,
+        help: 'Upgrade major versions as well. Only makes sense with --force-upgrade.',
+      )
+      ..addFlag(
         _keyCrash,
         help: 'For Flutter CLI testing only, forces this command to throw an unhandled exception.',
         negatable: false,
@@ -70,6 +74,7 @@ class UpdatePackagesCommand extends FlutterCommand {
   final String _keyCherryPickPackage = 'cherry-pick-package';
   final String _keyCherryPickVersion = 'cherry-pick-version';
   final String _keyOffline = 'offline';
+  final String _keyUpgradeMajor = 'upgrade-major';
   final String _keyCrash = 'crash';
 
   static const Set<String> fixedPackages = <String>{'test_api', 'test_core'};
@@ -130,6 +135,7 @@ class UpdatePackagesCommand extends FlutterCommand {
     final bool offline = boolArg(_keyOffline);
     final String? cherryPickPackage = stringArg(_keyCherryPickPackage);
     final String? cherryPickVersion = stringArg(_keyCherryPickVersion);
+    final bool relaxToAny = boolArg('upgrade-major');
 
     if (boolArg('crash')) {
       throw StateError('test crash please ignore.');
@@ -169,21 +175,19 @@ class UpdatePackagesCommand extends FlutterCommand {
     if (!updateHashes) {
       _verifyPubspecs(packages);
     }
-    if (cherryPick != null) {
-      globals.printStatus(
-        'Pinning package "${cherryPick.package}" to version "${cherryPick.version}"...',
-      );
-
-      await pub.interactively(
-        <String>['${cherryPick.package}:${cherryPick.version}'],
-        context: PubContext.pubAdd,
-        project: project,
-        command: 'add',
-      );
-
-      _writeHashesToPubspecs(packages);
-    } else if (forceUpgrade) {
-      globals.printStatus('Upgrading packages versions...');
+    if (forceUpgrade || cherryPick != null) {
+      final Map<String, String> pinnedDeps;
+      if (forceUpgrade) {
+        globals.printStatus('Upgrading packages versions...');
+        pinnedDeps = kManuallyPinnedDependencies;
+      } else if (cherryPick != null) {
+        globals.printStatus(
+          'Pinning package "${cherryPick.package}" to version "${cherryPick.version}"...',
+        );
+        pinnedDeps = {cherryPick.package: cherryPick.version};
+      } else {
+        throw StateError('');
+      }
 
       final Directory tempDir = globals.fs.systemTempDirectory.createTempSync(
         'flutter_upgrade_packages.',
@@ -195,7 +199,11 @@ class UpdatePackagesCommand extends FlutterCommand {
 
       yamlEditor.remove(<String>['workspace']);
 
-      _makeDepsAny(yamlEditor);
+      final RelaxMode relaxMode = switch (cherryPick != null) {
+        true => RelaxMode.strict,
+        false => relaxToAny ? RelaxMode.any : RelaxMode.caret,
+      };
+      _relaxDeps(yamlEditor, relaxMode, pinnedDeps);
 
       tempPubspec.writeAsStringSync(yamlEditor.toString());
 
@@ -255,21 +263,34 @@ class UpdatePackagesCommand extends FlutterCommand {
     return FlutterCommandResult.success();
   }
 
-  void _makeDepsAny(YamlEditor yamlEditor) {
+  void _relaxDeps(YamlEditor yamlEditor, RelaxMode relaxMode, Map<String, String> fixedDeps) {
     for (final String depType in <String>['dependencies', 'dev_dependencies']) {
       final YamlMap map = yamlEditor.parseAt(<String>[depType]) as YamlMap;
       for (final MapEntry<dynamic, dynamic> dep in map.entries) {
         final String packageName = dep.key as String;
         final dynamic version = dep.value;
-        if (!kManuallyPinnedDependencies.containsKey(packageName) && version is String) {
-          yamlEditor.update(<String>[
-            depType,
-            packageName,
-          ], version.startsWith('^') ? version : '^$version');
+        if (version is String) {
+          if (fixedDeps.containsKey(packageName)) {
+            yamlEditor.update(<String>[depType, packageName], fixedDeps[packageName]);
+          } else {
+            yamlEditor.update(
+              <String>[depType, packageName],
+              switch (relaxMode) {
+                RelaxMode.any => 'any',
+                RelaxMode.caret => _versionWithCaret(version),
+                RelaxMode.strict => _versionWithoutCaret(version),
+              },
+            );
+          }
         }
       }
     }
   }
+
+  String _versionWithCaret(String version) => version.startsWith('^') ? version : '^$version';
+
+  String _versionWithoutCaret(String version) =>
+      version.startsWith('^') ? version.substring(1) : version;
 
   Map<String, Map<String, String>> _fetchDeps(YamlEditor yamlEditor) {
     final Map<String, Map<String, String>> dependencies = <String, Map<String, String>>{};
@@ -296,10 +317,7 @@ class UpdatePackagesCommand extends FlutterCommand {
         final String packageName = dep.key as String;
         if (dependencies[depType]!.containsKey(packageName)) {
           final String version = dependencies[depType]![packageName]!;
-          yamlEditor.update(<String>[
-            depType,
-            packageName,
-          ], version.startsWith('^') ? version.substring(1) : version);
+          yamlEditor.update(<String>[depType, packageName], _versionWithoutCaret(version));
         }
       }
     }
@@ -424,3 +442,5 @@ class UpdatePackagesCommand extends FlutterCommand {
   static const String kDependencyChecksum = '# PUBSPEC CHECKSUM: ';
   final RegExp checksumRegex = RegExp('$kDependencyChecksum([a-zA-Z0-9]+)');
 }
+
+enum RelaxMode { any, caret, strict }
