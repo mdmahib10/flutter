@@ -231,12 +231,8 @@ class UpdatePackagesCommand extends FlutterCommand {
     return FlutterCommandResult.success();
   }
 
-  Future<void> _pubGet(FlutterProject project) async => pub.interactively(
-    <String>['get', '--enforce-lockfile'],
-    context: PubContext.pubGet,
-    project: project,
-    command: 'get',
-  );
+  Future<void> _pubGet(FlutterProject project) async =>
+      pub.get(context: PubContext.pubGet, project: project, enforceLockfile: true);
 
   Future<Map<String, Map<String, String>>> _upgrade(
     bool forceUpgrade,

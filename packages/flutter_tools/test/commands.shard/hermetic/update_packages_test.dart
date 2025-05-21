@@ -361,6 +361,7 @@ class _FakePub extends Fake implements Pub {
     String? flutterRootOverride,
     bool checkUpToDate = false,
     bool shouldSkipThirdPartyGenerator = true,
+    bool enforceLockfile = false,
     PubOutputMode outputMode = PubOutputMode.all,
   }) async {
     (pubspecs[project.directory.path] ??= <Pubspec>[]).add(
