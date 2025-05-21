@@ -266,7 +266,10 @@ class UpdatePackagesCommand extends FlutterCommand {
     final YamlEditor yamlEditor = YamlEditor(pubspecContents);
     final Map<String, Map<String, String>> oldDeps = _fetchDeps(yamlEditor);
 
-    yamlEditor.remove(<String>['workspace']);
+    final List<String> workspacePath = <String>['workspace'];
+    if (yamlEditor.parseAt(workspacePath, orElse: () => wrapAsYamlNode(null)).value != null) {
+      yamlEditor.remove(workspacePath);
+    }
 
     final RelaxMode relaxMode = switch (cherryPick != null) {
       true => RelaxMode.strict,
