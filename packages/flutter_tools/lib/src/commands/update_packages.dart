@@ -188,11 +188,14 @@ class UpdatePackagesCommand extends FlutterCommand {
       final String pubspecContents = project.pubspecFile.readAsStringSync();
       final YamlEditor yamlEditor = YamlEditor(pubspecContents);
 
-      final YamlMap deps = yamlEditor.parseAt(<String>['dependencies']) as YamlMap;
-      for (final MapEntry<dynamic, dynamic> dep in deps.entries) {
-        final String packageName = dep.key as String;
-        if (!kManuallyPinnedDependencies.containsKey(packageName) && dep.value is String) {
-          yamlEditor.update(<Object?>['dependencies', packageName], 'any');
+      final List<String> allDeps = <String>['dependencies', 'dev_dependencies'];
+      for (final String deps in allDeps) {
+        final YamlMap map = yamlEditor.parseAt(<Object?>[deps]) as YamlMap;
+        for (final MapEntry<dynamic, dynamic> dep in map.entries) {
+          final String packageName = dep.key as String;
+          if (!kManuallyPinnedDependencies.containsKey(packageName) && dep.value is String) {
+            yamlEditor.update(<Object?>[deps, packageName], 'any');
+          }
         }
       }
 
