@@ -260,8 +260,12 @@ class UpdatePackagesCommand extends FlutterCommand {
       final YamlMap map = yamlEditor.parseAt(<String>[depType]) as YamlMap;
       for (final MapEntry<dynamic, dynamic> dep in map.entries) {
         final String packageName = dep.key as String;
-        if (!kManuallyPinnedDependencies.containsKey(packageName) && dep.value is String) {
-          yamlEditor.update(<String>[depType, packageName], 'any');
+        final dynamic version = dep.value;
+        if (!kManuallyPinnedDependencies.containsKey(packageName) && version is String) {
+          yamlEditor.update(<String>[
+            depType,
+            packageName,
+          ], version.startsWith('^') ? version : '^$version');
         }
       }
     }
