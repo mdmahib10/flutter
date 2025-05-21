@@ -7,6 +7,8 @@ import 'dart:collection';
 
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
+import 'package:yaml/yaml.dart';
+import 'package:yaml_edit/yaml_edit.dart';
 
 import '../base/common.dart';
 import '../base/context.dart';
@@ -161,9 +163,21 @@ class UpdatePackagesCommand extends FlutterCommand {
       // such package fixed at a single version across all the pubspec.yamls.
       globals.printStatus('Upgrading packages...');
     }
-
     final FlutterProject project = FlutterProject.fromDirectory(rootDirectory);
+
+    final String pubspecContents = project.pubspecFile.readAsStringSync();
+    final YamlEditor yamlEditor = YamlEditor(pubspecContents);
+
+    final YamlMap deps = yamlEditor.parseAt(<String>['dependencies']) as YamlMap;
+    print(deps);
+    for (final MapEntry<dynamic, dynamic> dep in deps.entries) {
+      yamlEditor.update(<Object?>['dependencies', dep.key], 'any');
+    }
+
+    project.pubspecFile.writeAsStringSync(yamlEditor.toString());
+
     final List<Directory> packages = <Directory>[...runner!.getRepoPackages(), rootDirectory];
+
     if (!updateHashes) {
       _verifyPubspecs(packages);
     }
@@ -184,7 +198,7 @@ class UpdatePackagesCommand extends FlutterCommand {
       globals.printStatus('Upgrading packages versions...');
 
       await pub.interactively(
-        <String>['--force-upgrade'],
+        <String>['upgrade', '--major-versions'],
         context: PubContext.updatePackages,
         project: project,
         command: 'update',
