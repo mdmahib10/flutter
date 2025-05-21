@@ -184,7 +184,7 @@ class UpdatePackagesCommand extends FlutterCommand {
         globals.printStatus(
           'Pinning package "${cherryPick.package}" to version "${cherryPick.version}"...',
         );
-        pinnedDeps = {cherryPick.package: cherryPick.version};
+        pinnedDeps = <String, String>{cherryPick.package: cherryPick.version};
       } else {
         throw StateError('');
       }
