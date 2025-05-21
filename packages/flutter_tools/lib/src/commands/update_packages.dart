@@ -224,8 +224,13 @@ class UpdatePackagesCommand extends FlutterCommand {
         rootDirectory.childDirectory('packages').childDirectory('flutter'),
         rootDirectory.childDirectory('packages').childDirectory('flutter_test'),
         rootDirectory.childDirectory('packages').childDirectory('flutter_localizations'),
+        rootDirectory
+            .childDirectory('packages')
+            .childDirectory('flutter_tools')
+            .childDirectory('test')
+            .childDirectory('widget_preview_scaffold.shard')
+            .childDirectory('widget_preview_scaffold'),
       ]) {
-        globals.printStatus('Copy to $package');
         _updatePubspec(package, deps);
       }
 
