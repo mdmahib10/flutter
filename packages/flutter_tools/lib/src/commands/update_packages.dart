@@ -189,6 +189,7 @@ class UpdatePackagesCommand extends FlutterCommand {
         'flutter_upgrade_packages.',
       );
       final File tempPubspec = tempDir.childFile('pubspec.yaml')..createSync();
+      globals.printStatus('Writing to temp pubspec at $tempPubspec');
       final String pubspecContents = project.pubspecFile.readAsStringSync();
       final YamlEditor yamlEditor = YamlEditor(pubspecContents);
 
@@ -198,6 +199,7 @@ class UpdatePackagesCommand extends FlutterCommand {
 
       tempPubspec.writeAsStringSync(yamlEditor.toString());
 
+      globals.printStatus('Upgrade in $tempDir');
       await pub.interactively(
         <String>['upgrade', '--tighten'],
         context: PubContext.updatePackages,
@@ -215,6 +217,7 @@ class UpdatePackagesCommand extends FlutterCommand {
         rootDirectory.childDirectory('packages').childDirectory('flutter_test'),
         rootDirectory.childDirectory('packages').childDirectory('flutter_localizations'),
       ]) {
+        globals.printStatus('Copy to $package');
         _updatePubspec(package, deps);
       }
 
