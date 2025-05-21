@@ -201,7 +201,7 @@ class UpdatePackagesCommand extends FlutterCommand {
 
       globals.printStatus('Upgrade in $tempDir');
       await pub.interactively(
-        <String>['upgrade', '--tighten'],
+        <String>['upgrade', '--tighten', '-C', tempDir.path],
         context: PubContext.updatePackages,
         project: FlutterProject.fromDirectory(tempDir),
         command: 'update',
