@@ -173,10 +173,10 @@ packages:
     dependency: "direct main"
     description:
       name: dart_style
-      sha256: "27eb0ae77836989a3bc541ce55595e8ceee0992807f14511552a898ddd0d88ac"
+      sha256: "5b236382b47ee411741447c1f1e111459c941ea1b3f2b540dde54c210a3662af"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.1.0"
   dds:
     dependency: "direct main"
     description:
@@ -301,18 +301,18 @@ packages:
     dependency: "direct main"
     description:
       name: hooks
-      sha256: "851928fff27d0ff030f54af32c5fb6ce4707a37f7d2e2976cea68dea9b939909"
+      sha256: c29b5d113b093995426c9d2d4ce157902f04d426d9fb44206f88d2da7ae3e0f2
       url: "https://pub.dev"
     source: hosted
-    version: "0.19.0"
+    version: "0.19.1"
   hooks_runner:
     dependency: "direct main"
     description:
       name: hooks_runner
-      sha256: "9dde1114975a39f8b2d32575ccb5fdfec0a31c33c83523e60f529a202cbd932f"
+      sha256: a0f1aa2ef80eb8a9c5d8335d613c0a16d0a3b038098151430ce2e884804244ca
       url: "https://pub.dev"
     source: hosted
-    version: "0.19.0"
+    version: "0.20.0"
   html:
     dependency: "direct main"
     description:

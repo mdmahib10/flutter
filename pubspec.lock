@@ -350,10 +350,10 @@ packages:
     dependency: "direct main"
     description:
       name: hooks
-      sha256: "851928fff27d0ff030f54af32c5fb6ce4707a37f7d2e2976cea68dea9b939909"
+      sha256: c29b5d113b093995426c9d2d4ce157902f04d426d9fb44206f88d2da7ae3e0f2
       url: "https://pub.dev"
     source: hosted
-    version: "0.19.0"
+    version: "0.19.1"
   html:
     dependency: "direct main"
     description:
