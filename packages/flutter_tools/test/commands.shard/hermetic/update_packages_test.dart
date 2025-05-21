@@ -203,6 +203,15 @@ void main() {
       flutterSdk.childDirectory('examples').childFile('pubspec.yaml')
         ..createSync(recursive: true)
         ..writeAsStringSync(kExamplesPubspecYaml);
+      flutterSdk.childDirectory('packages').childDirectory('flutter_test').childFile('pubspec.yaml')
+        ..createSync(recursive: true)
+        ..writeAsStringSync(kFlutterToolsPubspecYaml);
+      flutterSdk
+          .childDirectory('packages')
+          .childDirectory('flutter_localizations')
+          .childFile('pubspec.yaml')
+        ..createSync(recursive: true)
+        ..writeAsStringSync(kFlutterToolsPubspecYaml);
       flutterSdk
           .childDirectory('packages')
           .childDirectory('flutter_tools')
@@ -371,9 +380,6 @@ class _FakePub extends Fake implements Pub {
   }
 
   Pubspec _upgrade(List<String> arguments, {required FlutterProject project}) {
-    if (arguments.first != '--force-upgrade') {
-      throw ArgumentError('Must be called with --force-upgrade');
-    }
     final Pubspec pubspec = Pubspec.parse(project.pubspecFile.readAsStringSync());
     pubspec.dependencies['typed_data'] = HostedDependency(
       version: VersionConstraint.parse('^1.1.1'),

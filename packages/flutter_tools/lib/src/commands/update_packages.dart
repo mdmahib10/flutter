@@ -196,6 +196,7 @@ class UpdatePackagesCommand extends FlutterCommand {
       globals.printStatus('Writing to temp pubspec at $tempPubspec');
       final String pubspecContents = project.pubspecFile.readAsStringSync();
       final YamlEditor yamlEditor = YamlEditor(pubspecContents);
+      final Map<String, Map<String, String>> oldDeps = _fetchDeps(yamlEditor);
 
       yamlEditor.remove(<String>['workspace']);
 
@@ -215,9 +216,11 @@ class UpdatePackagesCommand extends FlutterCommand {
         command: 'update',
       );
 
-      final Map<String, Map<String, String>> deps = _fetchDeps(
+      final Map<String, Map<String, String>> newDeps = _fetchDeps(
         YamlEditor(tempPubspec.readAsStringSync()),
       );
+
+      final deps = _mergeDeps(oldDeps, newDeps);
 
       for (final Directory package in <Directory>[
         rootDirectory,
@@ -325,7 +328,7 @@ class UpdatePackagesCommand extends FlutterCommand {
         final String packageName = dep.key as String;
         if (dependencies[depType]!.containsKey(packageName)) {
           final String version = dependencies[depType]![packageName]!;
-          yamlEditor.update(<String>[depType, packageName], _versionWithoutCaret(version));
+          yamlEditor.update(<String>[depType, packageName], version);
         }
       }
     }
@@ -359,6 +362,21 @@ class UpdatePackagesCommand extends FlutterCommand {
         throwToolExit('The dependency on $package must be fixed between flutter and flutter_tools');
       }
     }
+  }
+
+  Map<String, Map<String, String>> _mergeDeps(
+    Map<String, Map<String, String>> oldDeps,
+    Map<String, Map<String, String>> newDeps,
+  ) {
+    final Map<String, Map<String, String>> mergedDeps = <String, Map<String, String>>{...newDeps};
+    for (final MapEntry<String, Map<String, String>> depType in newDeps.entries) {
+      for (final MapEntry<String, String> dep in depType.value.entries) {
+        if (!(oldDeps[depType.key]?[dep.key]?.startsWith('^') ?? false)) {
+          newDeps[depType.key]![dep.key] = _versionWithoutCaret(dep.value);
+        }
+      }
+    }
+    return mergedDeps;
   }
 
   void _checkPins(Directory directory) {
