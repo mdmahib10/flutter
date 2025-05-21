@@ -185,28 +185,38 @@ class UpdatePackagesCommand extends FlutterCommand {
     } else if (forceUpgrade) {
       globals.printStatus('Upgrading packages versions...');
 
+      final Directory tempDir = globals.fs.systemTempDirectory.createTempSync(
+        'flutter_upgrade_packages.',
+      );
+      final File tempPubspec = tempDir.childFile('pubspec.yaml')..createSync();
       final String pubspecContents = project.pubspecFile.readAsStringSync();
       final YamlEditor yamlEditor = YamlEditor(pubspecContents);
 
-      final List<String> allDeps = <String>['dependencies', 'dev_dependencies'];
-      for (final String deps in allDeps) {
-        final YamlMap map = yamlEditor.parseAt(<Object?>[deps]) as YamlMap;
-        for (final MapEntry<dynamic, dynamic> dep in map.entries) {
-          final String packageName = dep.key as String;
-          if (!kManuallyPinnedDependencies.containsKey(packageName) && dep.value is String) {
-            yamlEditor.update(<Object?>[deps, packageName], 'any');
-          }
-        }
+      yamlEditor.remove(<String>['workspace']);
+
+      _makeDepsAny(yamlEditor);
+
+      tempPubspec.writeAsStringSync(yamlEditor.toString());
+
+      await pub.interactively(
+        <String>['upgrade', '--tighten'],
+        context: PubContext.updatePackages,
+        project: FlutterProject.fromDirectory(tempDir),
+        command: 'update',
+      );
+
+      final Map<String, Map<String, String>> deps = _fetchDeps(
+        YamlEditor(tempPubspec.readAsStringSync()),
+      );
+
+      for (final Directory package in <Directory>[
+        rootDirectory,
+        rootDirectory.childDirectory('packages').childDirectory('flutter'),
+        rootDirectory.childDirectory('packages').childDirectory('flutter_test'),
+        rootDirectory.childDirectory('packages').childDirectory('flutter_localizations'),
+      ]) {
+        _updatePubspec(package, deps);
       }
-
-      project.pubspecFile.writeAsStringSync(yamlEditor.toString());
-
-      // await pub.interactively(
-      //   <String>['upgrade', '--major-versions'],
-      //   context: PubContext.updatePackages,
-      //   project: project,
-      //   command: 'update',
-      // );
 
       _writeHashesToPubspecs(packages);
     }
@@ -240,6 +250,53 @@ class UpdatePackagesCommand extends FlutterCommand {
     await _downloadCoverageData();
 
     return FlutterCommandResult.success();
+  }
+
+  void _makeDepsAny(YamlEditor yamlEditor) {
+    for (final String depType in <String>['dependencies', 'dev_dependencies']) {
+      final YamlMap map = yamlEditor.parseAt(<String>[depType]) as YamlMap;
+      for (final MapEntry<dynamic, dynamic> dep in map.entries) {
+        final String packageName = dep.key as String;
+        if (!kManuallyPinnedDependencies.containsKey(packageName) && dep.value is String) {
+          yamlEditor.update(<String>[depType, packageName], 'any');
+        }
+      }
+    }
+  }
+
+  Map<String, Map<String, String>> _fetchDeps(YamlEditor yamlEditor) {
+    final Map<String, Map<String, String>> dependencies = <String, Map<String, String>>{};
+    for (final String depType in <String>['dependencies', 'dev_dependencies']) {
+      dependencies[depType] = <String, String>{};
+      final YamlMap map = yamlEditor.parseAt(<String>[depType]) as YamlMap;
+      for (final MapEntry<dynamic, dynamic> dep in map.entries) {
+        final String packageName = dep.key as String;
+        final dynamic restriction = dep.value;
+        if (restriction is String) {
+          dependencies[depType]![packageName] = restriction;
+        }
+      }
+    }
+    return dependencies;
+  }
+
+  void _updatePubspec(Directory package, Map<String, Map<String, String>> dependencies) {
+    final File pubspecFile = package.childFile('pubspec.yaml');
+    final YamlEditor yamlEditor = YamlEditor(pubspecFile.readAsStringSync());
+    for (final String depType in <String>['dependencies', 'dev_dependencies']) {
+      final YamlMap map = yamlEditor.parseAt(<String>[depType]) as YamlMap;
+      for (final MapEntry<dynamic, dynamic> dep in map.entries) {
+        final String packageName = dep.key as String;
+        if (!dependencies[depType]!.containsKey(packageName)) {
+          final String version = dependencies[depType]![packageName]!;
+          yamlEditor.update(<String>[
+            depType,
+            packageName,
+          ], version.startsWith('^') ? version.substring(1) : version);
+        }
+      }
+    }
+    pubspecFile.writeAsString(yamlEditor.toString());
   }
 
   void _verifyPubspecs(List<Directory> packages) {
