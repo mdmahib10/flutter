@@ -169,70 +169,47 @@ class UpdatePackagesCommand extends FlutterCommand {
       // such package fixed at a single version across all the pubspec.yamls.
       globals.printStatus('Upgrading packages...');
     }
-    final FlutterProject project = FlutterProject.fromDirectory(rootDirectory);
+    final FlutterProject rootProject = FlutterProject.fromDirectory(rootDirectory);
+    final FlutterProject toolProject = FlutterProject.fromDirectory(
+      rootDirectory.childDirectory('packages').childDirectory('flutter_tools'),
+    );
+    // This needs to be special cased, as it is below flutter_tools, so cannot
+    // be in the flutter pub workspace.
+    final FlutterProject widgetPreviewScaffoldProject = FlutterProject.fromDirectory(
+      rootProject.directory
+          .childDirectory('packages')
+          .childDirectory('flutter_tools')
+          .childDirectory('test')
+          .childDirectory('widget_preview_scaffold.shard')
+          .childDirectory('widget_preview_scaffold'),
+    );
     final List<Directory> packages = <Directory>[...runner!.getRepoPackages(), rootDirectory];
 
     if (!updateHashes) {
       _verifyPubspecs(packages);
     }
     if (forceUpgrade || cherryPick != null) {
-      final Map<String, String> pinnedDeps;
-      if (forceUpgrade) {
-        globals.printStatus('Upgrading packages versions...');
-        pinnedDeps = kManuallyPinnedDependencies;
-      } else if (cherryPick != null) {
-        globals.printStatus(
-          'Pinning package "${cherryPick.package}" to version "${cherryPick.version}"...',
-        );
-        pinnedDeps = <String, String>{cherryPick.package: cherryPick.version};
-      } else {
-        throw StateError('');
-      }
-
-      final Directory tempDir = globals.fs.systemTempDirectory.createTempSync(
-        'flutter_upgrade_packages.',
+      final Map<String, Map<String, String>> toolDeps = await _upgrade(
+        forceUpgrade,
+        cherryPick,
+        toolProject,
+        relaxToAny,
       );
-      final File tempPubspec = tempDir.childFile('pubspec.yaml')..createSync();
-      globals.printStatus('Writing to temp pubspec at $tempPubspec');
-      final String pubspecContents = project.pubspecFile.readAsStringSync();
-      final YamlEditor yamlEditor = YamlEditor(pubspecContents);
-      final Map<String, Map<String, String>> oldDeps = _fetchDeps(yamlEditor);
+      _updatePubspec(toolProject.directory, toolDeps);
 
-      yamlEditor.remove(<String>['workspace']);
-
-      final RelaxMode relaxMode = switch (cherryPick != null) {
-        true => RelaxMode.strict,
-        false => relaxToAny ? RelaxMode.any : RelaxMode.caret,
-      };
-      _relaxDeps(yamlEditor, relaxMode, pinnedDeps);
-
-      tempPubspec.writeAsStringSync(yamlEditor.toString());
-
-      globals.printStatus('Upgrade in $tempDir');
-      await pub.interactively(
-        <String>['upgrade', '--tighten', '-C', tempDir.path],
-        context: PubContext.updatePackages,
-        project: FlutterProject.fromDirectory(tempDir),
-        command: 'update',
+      final Map<String, Map<String, String>> deps = await _upgrade(
+        forceUpgrade,
+        cherryPick,
+        rootProject,
+        relaxToAny,
       );
-
-      final Map<String, Map<String, String>> newDeps = _fetchDeps(
-        YamlEditor(tempPubspec.readAsStringSync()),
-      );
-
-      final Map<String, Map<String, String>> deps = _mergeDeps(oldDeps, newDeps);
 
       for (final Directory package in <Directory>[
         rootDirectory,
         rootDirectory.childDirectory('packages').childDirectory('flutter'),
         rootDirectory.childDirectory('packages').childDirectory('flutter_test'),
         rootDirectory.childDirectory('packages').childDirectory('flutter_localizations'),
-        rootDirectory
-            .childDirectory('packages')
-            .childDirectory('flutter_tools')
-            .childDirectory('test')
-            .childDirectory('widget_preview_scaffold.shard')
-            .childDirectory('widget_preview_scaffold'),
+        widgetPreviewScaffoldProject.directory,
       ]) {
         _updatePubspec(package, deps);
       }
@@ -247,28 +224,72 @@ class UpdatePackagesCommand extends FlutterCommand {
     _checkWithFlutterTools(rootDirectory);
     _checkPins(rootDirectory);
 
-    await pub.get(context: PubContext.pubGet, project: project);
+    await pub.get(context: PubContext.pubGet, project: rootProject);
     await pub.get(
       context: PubContext.pubGet,
       project: FlutterProject.fromDirectory(
-        project.directory.childDirectory('packages').childDirectory('flutter_tools'),
+        rootProject.directory.childDirectory('packages').childDirectory('flutter_tools'),
       ),
     );
-    await pub.get(
-      context: PubContext.pubGet,
-      project: FlutterProject.fromDirectory(
-        project.directory
-            .childDirectory('packages')
-            .childDirectory('flutter_tools')
-            .childDirectory('test')
-            .childDirectory('widget_preview_scaffold.shard')
-            .childDirectory('widget_preview_scaffold'),
-      ),
-    );
+    await pub.get(context: PubContext.pubGet, project: widgetPreviewScaffoldProject);
 
     await _downloadCoverageData();
 
     return FlutterCommandResult.success();
+  }
+
+  Future<Map<String, Map<String, String>>> _upgrade(
+    bool forceUpgrade,
+    ({String package, String version})? cherryPick,
+    FlutterProject project,
+    bool relaxToAny,
+  ) async {
+    final Map<String, String> pinnedDeps;
+    if (forceUpgrade) {
+      globals.printStatus('Upgrading packages versions...');
+      pinnedDeps = kManuallyPinnedDependencies;
+    } else if (cherryPick != null) {
+      globals.printStatus(
+        'Pinning package "${cherryPick.package}" to version "${cherryPick.version}"...',
+      );
+      pinnedDeps = <String, String>{cherryPick.package: cherryPick.version};
+    } else {
+      throw StateError('');
+    }
+
+    final Directory tempDir = globals.fs.systemTempDirectory.createTempSync(
+      'flutter_upgrade_packages.',
+    );
+    final File tempPubspec = tempDir.childFile('pubspec.yaml')..createSync();
+    globals.printStatus('Writing to temp pubspec at $tempPubspec');
+    final String pubspecContents = project.pubspecFile.readAsStringSync();
+    final YamlEditor yamlEditor = YamlEditor(pubspecContents);
+    final Map<String, Map<String, String>> oldDeps = _fetchDeps(yamlEditor);
+
+    yamlEditor.remove(<String>['workspace']);
+
+    final RelaxMode relaxMode = switch (cherryPick != null) {
+      true => RelaxMode.strict,
+      false => relaxToAny ? RelaxMode.any : RelaxMode.caret,
+    };
+    _relaxDeps(yamlEditor, relaxMode, pinnedDeps);
+
+    tempPubspec.writeAsStringSync(yamlEditor.toString());
+
+    globals.printStatus('Upgrade in $tempDir');
+    await pub.interactively(
+      <String>['upgrade', '--tighten', '-C', tempDir.path],
+      context: PubContext.updatePackages,
+      project: FlutterProject.fromDirectory(tempDir),
+      command: 'update',
+    );
+
+    final Map<String, Map<String, String>> newDeps = _fetchDeps(
+      YamlEditor(tempPubspec.readAsStringSync()),
+    );
+
+    final Map<String, Map<String, String>> deps = _mergeDeps(oldDeps, newDeps);
+    return deps;
   }
 
   void _relaxDeps(YamlEditor yamlEditor, RelaxMode relaxMode, Map<String, String> fixedDeps) {
