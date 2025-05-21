@@ -231,14 +231,12 @@ class UpdatePackagesCommand extends FlutterCommand {
     return FlutterCommandResult.success();
   }
 
-  Future<void> _pubGet(FlutterProject rootProject2) async {
-    await pub.interactively(
-      <String>['get', '--enforce-lockfile'],
-      context: PubContext.pubGet,
-      project: rootProject2,
-      command: 'get',
-    );
-  }
+  Future<void> _pubGet(FlutterProject project) async => pub.interactively(
+    <String>['get', '--enforce-lockfile'],
+    context: PubContext.pubGet,
+    project: project,
+    command: 'get',
+  );
 
   Future<Map<String, Map<String, String>>> _upgrade(
     bool forceUpgrade,
@@ -294,6 +292,7 @@ class UpdatePackagesCommand extends FlutterCommand {
     );
 
     final Map<String, Map<String, String>> deps = _mergeDeps(oldDeps, newDeps);
+    tempDir.deleteSync();
     return deps;
   }
 
