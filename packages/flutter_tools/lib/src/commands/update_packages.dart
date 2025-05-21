@@ -201,12 +201,12 @@ class UpdatePackagesCommand extends FlutterCommand {
 
       project.pubspecFile.writeAsStringSync(yamlEditor.toString());
 
-      await pub.interactively(
-        <String>['upgrade', '--major-versions'],
-        context: PubContext.updatePackages,
-        project: project,
-        command: 'update',
-      );
+      // await pub.interactively(
+      //   <String>['upgrade', '--major-versions'],
+      //   context: PubContext.updatePackages,
+      //   project: project,
+      //   command: 'update',
+      // );
 
       _writeHashesToPubspecs(packages);
     }
