@@ -220,7 +220,7 @@ class UpdatePackagesCommand extends FlutterCommand {
         YamlEditor(tempPubspec.readAsStringSync()),
       );
 
-      final deps = _mergeDeps(oldDeps, newDeps);
+      final Map<String, Map<String, String>> deps = _mergeDeps(oldDeps, newDeps);
 
       for (final Directory package in <Directory>[
         rootDirectory,
@@ -371,7 +371,9 @@ class UpdatePackagesCommand extends FlutterCommand {
     final Map<String, Map<String, String>> mergedDeps = <String, Map<String, String>>{...newDeps};
     for (final MapEntry<String, Map<String, String>> depType in newDeps.entries) {
       for (final MapEntry<String, String> dep in depType.value.entries) {
-        if (!(oldDeps[depType.key]?[dep.key]?.startsWith('^') ?? false)) {
+        if (oldDeps[depType.key]?[dep.key]?.startsWith('^') ?? false) {
+          newDeps[depType.key]![dep.key] = _versionWithCaret(dep.value);
+        } else {
           newDeps[depType.key]![dep.key] = _versionWithoutCaret(dep.value);
         }
       }
