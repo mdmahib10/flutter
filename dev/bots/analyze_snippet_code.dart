@@ -75,6 +75,7 @@ import 'package:args/args.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart';
+import 'package:yaml_edit/yaml_edit.dart' show YamlEditor;
 
 final String _flutterRoot = path.dirname(path.dirname(path.dirname(path.fromUri(Platform.script))));
 final String _packageFlutter = path.join(_flutterRoot, 'packages', 'flutter', 'lib');
@@ -471,6 +472,14 @@ class _SnippetChecker {
   /// The temporary directory where all output is written. This will be deleted
   /// automatically if there are no errors unless _keepTmp is true.
   final Directory _tempDirectory;
+
+  Directory get _contentDirectory {
+    final Directory directory = Directory(path.join(_tempDirectory.path, 'packages'));
+    if (!directory.existsSync()) {
+      directory.createSync();
+    }
+    return directory;
+  }
 
   /// The package directories within the flutter root dir that will be checked.
   final List<Directory> _flutterPackages;
@@ -982,17 +991,21 @@ class _SnippetChecker {
   /// Creates the configuration files necessary for the analyzer to consider
   /// the temporary directory a package, and sets which lint rules to enforce.
   void _createConfigurationFiles() {
-    final File targetPubSpec = File(path.join(_tempDirectory.path, 'pubspec.yaml'));
-    if (!targetPubSpec.existsSync()) {
-      // Copying pubspec.yaml from examples/api into temp directory.
-      final File sourcePubSpec = File(path.join(_flutterRoot, 'examples', 'api', 'pubspec.yaml'));
-      if (!sourcePubSpec.existsSync()) {
-        throw 'Cannot find pubspec.yaml at ${sourcePubSpec.path}, which is also used to analyze code snippets.';
-      }
-      sourcePubSpec.copySync(targetPubSpec.path);
-    }
+    final String targetWorkspacePubspecPath = path.join(_tempDirectory.path, 'pubspec.yaml');
+    _copyPubspec(targetWorkspacePubspecPath, path.join(_flutterRoot, 'pubspec.yaml'));
+    final File targetWorkspacePubspec = File(targetWorkspacePubspecPath);
+    final String pubspec = targetWorkspacePubspec.readAsStringSync();
+
+    final YamlEditor yamlEditor = YamlEditor(pubspec);
+    yamlEditor.update(<String>['workspace'], <String>['packages']);
+    targetWorkspacePubspec.writeAsStringSync(yamlEditor.toString());
+
+    _copyPubspec(
+      path.join(_contentDirectory.path, 'pubspec.yaml'),
+      path.join(_flutterRoot, 'examples', 'api', 'pubspec.yaml'),
+    );
     final File targetAnalysisOptions = File(
-      path.join(_tempDirectory.path, 'analysis_options.yaml'),
+      path.join(_contentDirectory.path, 'analysis_options.yaml'),
     );
     if (!targetAnalysisOptions.existsSync()) {
       // Use the same analysis_options.yaml configuration that's used for examples/api.
@@ -1008,6 +1021,19 @@ class _SnippetChecker {
     }
   }
 
+  void _copyPubspec(String targetPath, String sourcePath) {
+    final File targetPubSpec = File(targetPath);
+    if (!targetPubSpec.existsSync()) {
+      // Copying pubspec.yaml from examples/api into temp directory.
+      final File sourcePubSpec = File(sourcePath);
+      if (!sourcePubSpec.existsSync()) {
+        throw 'Cannot find pubspec.yaml at ${sourcePubSpec.path}, which is also used to analyze code snippets.';
+      }
+      targetPubSpec.createSync(recursive: true);
+      targetPubSpec.writeAsStringSync(sourcePubSpec.readAsStringSync());
+    }
+  }
+
   /// Writes out a snippet section to the disk and returns the file.
   File _writeSnippetFile(_SnippetFile snippetFile) {
     final String snippetFileId = _createNameFromSource(
@@ -1015,7 +1041,7 @@ class _SnippetChecker {
       snippetFile.filename,
       snippetFile.indexLine,
     );
-    final File outputFile = File(path.join(_tempDirectory.path, '$snippetFileId.dart'))
+    final File outputFile = File(path.join(_contentDirectory.path, '$snippetFileId.dart'))
       ..createSync(recursive: true);
     final String contents =
         snippetFile.code.map<String>((_Line line) => line.code).join('\n').trimRight();
@@ -1045,7 +1071,7 @@ class _SnippetChecker {
         continue;
       }
       final String message = match.namedGroup('description')!;
-      final File file = File(path.join(_tempDirectory.path, match.namedGroup('file')));
+      final File file = File(path.join(_contentDirectory.path, match.namedGroup('file')));
       final List<String> fileContents = file.readAsLinesSync();
       final String lineString = match.namedGroup('line')!;
       final String columnString = match.namedGroup('column')!;
@@ -1146,14 +1172,13 @@ class _SnippetChecker {
     Process.runSync(_flutter, <String>[
       'pub',
       'get',
-    ], workingDirectory: _tempDirectory.absolute.path);
+    ], workingDirectory: _contentDirectory.absolute.path);
     final ProcessResult result = Process.runSync(_flutter, <String>[
       '--no-wrap',
       'analyze',
-      '--no-preamble',
       '--no-congratulate',
       '.',
-    ], workingDirectory: _tempDirectory.absolute.path);
+    ], workingDirectory: _contentDirectory.absolute.path);
     final List<String> stderr = result.stderr.toString().trim().split('\n');
     final List<String> stdout = result.stdout.toString().trim().split('\n');
     // Remove output from building the flutter tool.
@@ -1172,13 +1197,11 @@ class _SnippetChecker {
     if (stderr.isNotEmpty && stderr.any((String line) => line.isNotEmpty)) {
       throw _SnippetCheckerException('Cannot analyze dartdocs; unexpected error output:\n$stderr');
     }
-    if (stdout.isNotEmpty && stdout.first == 'Building flutter tool...') {
-      stdout.removeAt(0);
-    }
-    if (stdout.isNotEmpty && stdout.first.isEmpty) {
-      stdout.removeAt(0);
-    }
-    return stdout;
+    return stdout
+        .skipWhile((String line) => !line.startsWith('Analyzing packages...'))
+        .skip(1)
+        .skipWhile((String line) => line.isEmpty)
+        .toList();
   }
 }
 
