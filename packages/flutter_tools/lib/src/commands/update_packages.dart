@@ -287,7 +287,7 @@ class UpdatePackagesCommand extends FlutterCommand {
       final YamlMap map = yamlEditor.parseAt(<String>[depType]) as YamlMap;
       for (final MapEntry<dynamic, dynamic> dep in map.entries) {
         final String packageName = dep.key as String;
-        if (!dependencies[depType]!.containsKey(packageName)) {
+        if (dependencies[depType]!.containsKey(packageName)) {
           final String version = dependencies[depType]![packageName]!;
           yamlEditor.update(<String>[
             depType,
