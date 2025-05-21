@@ -224,18 +224,22 @@ class UpdatePackagesCommand extends FlutterCommand {
     _checkWithFlutterTools(rootDirectory);
     _checkPins(rootDirectory);
 
-    await pub.get(context: PubContext.pubGet, project: rootProject);
-    await pub.get(
-      context: PubContext.pubGet,
-      project: FlutterProject.fromDirectory(
-        rootProject.directory.childDirectory('packages').childDirectory('flutter_tools'),
-      ),
-    );
-    await pub.get(context: PubContext.pubGet, project: widgetPreviewScaffoldProject);
+    await _pubGet(rootProject);
+    await _pubGet(toolProject);
+    await _pubGet(widgetPreviewScaffoldProject);
 
     await _downloadCoverageData();
 
     return FlutterCommandResult.success();
+  }
+
+  Future<void> _pubGet(FlutterProject rootProject2) async {
+    await pub.interactively(
+      <String>['get', '--enforce-lockfile'],
+      context: PubContext.pubGet,
+      project: rootProject2,
+      command: 'get',
+    );
   }
 
   Future<Map<String, Map<String, String>>> _upgrade(
