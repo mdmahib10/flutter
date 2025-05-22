@@ -288,6 +288,7 @@ Exception: c
 
 The relevant error-causing widget was:
     App App:${Uri.file(project.dir.path)}/lib/main.dart:1:1
+          ^ source: ${Uri.file(project.dir.path).toString().split('.').last}/lib/main.dart
 
 When the exception was thrown, this was the stack:
 #0      c (package:test/main.dart:1:1)
