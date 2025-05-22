@@ -304,6 +304,32 @@ void main() {
     );
 
     testUsingContext(
+      '--cherry-pick-package with caret',
+      () async {
+        final UpdatePackagesCommand command = UpdatePackagesCommand(verboseHelp: false);
+        await createTestCommandRunner(command).run(<String>[
+          'update-packages',
+          '--cherry-pick-package=vector_math',
+          '--cherry-pick-version=^2.0.9',
+        ]);
+        expect(
+          pub.pubspecs[flutterSdk.absolute.path]!.first.dependencies,
+          (Pubspec.parse(kFlutterWorkspacePubspecYaml)
+            ..dependencies['vector_math'] = HostedDependency(
+              version: VersionConstraint.parse('^2.0.9'),
+            )).dependencies,
+        );
+      },
+      overrides: <Type, Generator>{
+        Pub: () => pub,
+        FileSystem: () => fileSystem,
+        ProcessManager: () => processManager,
+        Cache: () => Cache.test(processManager: processManager),
+        Logger: () => logger,
+      },
+    );
+
+    testUsingContext(
       '--force-upgrade',
       () async {
         final UpdatePackagesCommand command = UpdatePackagesCommand(verboseHelp: false);

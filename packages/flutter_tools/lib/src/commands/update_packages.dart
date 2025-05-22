@@ -288,7 +288,7 @@ class UpdatePackagesCommand extends FlutterCommand {
 
     final ResolvedDependencies newDeps = _fetchDeps(YamlEditor(tempPubspec.readAsStringSync()));
 
-    final ResolvedDependencies deps = ResolvedDependencies.mergeDeps(oldDeps, newDeps);
+    final ResolvedDependencies deps = ResolvedDependencies.mergeDeps(oldDeps, newDeps, cherryPick);
     tempDir.deleteSync(recursive: true);
     return deps;
   }
@@ -510,6 +510,7 @@ class ResolvedDependencies {
   static ResolvedDependencies mergeDeps(
     ResolvedDependencies oldDeps,
     ResolvedDependencies newDeps,
+    CherryPick? cherryPick,
   ) {
     final ResolvedDependencies mergedDeps = ResolvedDependencies(<String, Map<String, String>>{
       ...newDeps.data,
@@ -520,7 +521,8 @@ class ResolvedDependencies {
       for (final MapEntry<String, String> dep in entry.value.entries) {
         final String packageName = dep.key;
         final String newVersion = dep.value;
-        final String? oldVersion = oldData?[packageName];
+        final String? oldVersion =
+            cherryPick?.package == packageName ? cherryPick!.version : oldData?[packageName];
         mergedDeps.data[dependencyType]![packageName] =
             oldVersion?.startsWith('^') ?? false
                 ? _versionWithCaret(newVersion)
