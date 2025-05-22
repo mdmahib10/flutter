@@ -9,6 +9,7 @@ import 'package:file/file.dart';
 import 'package:flutter_tools/src/cache.dart';
 import 'package:flutter_tools/src/convert.dart';
 import 'package:flutter_tools/src/globals.dart' as globals;
+import 'package:path/path.dart' as path;
 
 import '../../src/common.dart';
 import '../test_data/basic_project.dart';
@@ -288,7 +289,7 @@ Exception: c
 
 The relevant error-causing widget was:
     App App:${Uri.file(project.dir.path)}/lib/main.dart:1:1
-          ^ source: ${Uri.file(project.dir.path).toString().split('.').last}/lib/main.dart
+          ^ source: ${project.dir.path.split('.').last}${path.separator}lib${path.separator}main.dart
 
 When the exception was thrown, this was the stack:
 #0      c (package:test/main.dart:1:1)
