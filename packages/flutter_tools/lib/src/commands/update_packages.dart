@@ -288,7 +288,7 @@ class UpdatePackagesCommand extends FlutterCommand {
     );
 
     final Map<String, Map<String, String>> deps = _mergeDeps(oldDeps, newDeps);
-    tempDir.deleteSync();
+    tempDir.deleteSync(recursive: true);
     return deps;
   }
 
