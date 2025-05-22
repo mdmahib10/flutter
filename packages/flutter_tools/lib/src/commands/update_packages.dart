@@ -296,7 +296,7 @@ class UpdatePackagesCommand extends FlutterCommand {
   void _relaxDeps(YamlEditor yamlEditor, RelaxMode relaxMode, Map<String, String> fixedDeps) {
     ResolvedDependencies().forEach(
       yamlEditor: yamlEditor,
-      deps: (
+      func: (
         Map<String, String> dependencies,
         String depType,
         String packageName,
@@ -323,7 +323,7 @@ class UpdatePackagesCommand extends FlutterCommand {
   ResolvedDependencies _fetchDeps(YamlEditor yamlEditor) {
     return ResolvedDependencies()..forEach(
       yamlEditor: yamlEditor,
-      deps: (
+      func: (
         Map<String, String> dependencies,
         String depType,
         String packageName,
@@ -339,10 +339,9 @@ class UpdatePackagesCommand extends FlutterCommand {
   void _updatePubspec(Directory package, ResolvedDependencies dependencies) {
     final File pubspecFile = package.childFile(_pubspecName);
     final YamlEditor yamlEditor = YamlEditor(pubspecFile.readAsStringSync());
-    final ResolvedDependencies dependencies = ResolvedDependencies();
     dependencies.forEach(
       yamlEditor: yamlEditor,
-      deps: (
+      func: (
         Map<String, String> dependencies,
         String depType,
         String packageName,
@@ -473,10 +472,11 @@ class UpdatePackagesCommand extends FlutterCommand {
 }
 
 class ResolvedDependencies {
-  ResolvedDependencies([this.data = const <String, Map<String, String>>{}]);
+  ResolvedDependencies([Map<String, Map<String, String>>? data])
+    : data = data ?? <String, Map<String, String>>{};
 
-  final String s = 'dependencies';
-  final String t = 'dev_dependencies';
+  static const String _dependencies = 'dependencies';
+  static const String _devDependencies = 'dev_dependencies';
   final Map<String, Map<String, String>> data;
 
   void forEach({
@@ -487,15 +487,16 @@ class ResolvedDependencies {
       String packageName,
       Object? version,
     )
-    deps,
+    func,
   }) {
-    for (final String dependencyType in <String>[s, t]) {
+    for (final String dependencyType in <String>[_dependencies, _devDependencies]) {
+      data[dependencyType] ??= <String, String>{};
       final Map<Object?, Object?> map =
           yamlEditor.parseAt(<String>[dependencyType], orElse: () => YamlMap()) as YamlMap;
       for (final MapEntry<Object?, Object?> dep in map.entries) {
         final String packageName = dep.key! as String;
         final Object? restriction = dep.value;
-        deps(data[dependencyType]!, dependencyType, packageName, restriction);
+        func(data[dependencyType]!, dependencyType, packageName, restriction);
       }
     }
   }
@@ -507,13 +508,17 @@ class ResolvedDependencies {
     final ResolvedDependencies mergedDeps = ResolvedDependencies(<String, Map<String, String>>{
       ...newDeps.data,
     });
-    for (final MapEntry<String, Map<String, String>> depType in newDeps.data.entries) {
-      for (final MapEntry<String, String> dep in depType.value.entries) {
-        if (oldDeps.data[depType.key]?[dep.key]?.startsWith('^') ?? false) {
-          newDeps.data[depType.key]![dep.key] = _versionWithCaret(dep.value);
-        } else {
-          newDeps.data[depType.key]![dep.key] = _versionWithoutCaret(dep.value);
-        }
+    for (final MapEntry<String, Map<String, String>> entry in mergedDeps.data.entries) {
+      final String dependencyType = entry.key;
+      final Map<String, String>? oldData = oldDeps.data[dependencyType];
+      for (final MapEntry<String, String> dep in entry.value.entries) {
+        final String packageName = dep.key;
+        final String newVersion = dep.value;
+        final String? oldVersion = oldData?[packageName];
+        mergedDeps.data[dependencyType]![packageName] =
+            oldVersion?.startsWith('^') ?? false
+                ? _versionWithCaret(newVersion)
+                : _versionWithoutCaret(newVersion);
       }
     }
     return mergedDeps;
