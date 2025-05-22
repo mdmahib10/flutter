@@ -198,7 +198,7 @@ class UpdatePackagesCommand extends FlutterCommand {
       _verifyPubspecs(packages);
     }
     if (forceUpgrade || cherryPick != null) {
-      if (excludeTools) {
+      if (!excludeTools) {
         final ResolvedDependencies toolDeps = await _upgrade(
           forceUpgrade,
           cherryPick,
