@@ -222,17 +222,17 @@ class UpdatePackagesCommand extends FlutterCommand {
     _checkWithFlutterTools(rootDirectory);
     _checkPins(rootDirectory);
 
-    await _pubGet(rootProject);
-    await _pubGet(toolProject);
-    await _pubGet(widgetPreviewScaffoldProject);
+    await _pubGet(rootProject, forceUpgrade || cherryPick != null);
+    await _pubGet(toolProject, forceUpgrade || cherryPick != null);
+    await _pubGet(widgetPreviewScaffoldProject, forceUpgrade || cherryPick != null);
 
     await _downloadCoverageData();
 
     return FlutterCommandResult.success();
   }
 
-  Future<void> _pubGet(FlutterProject project) async =>
-      pub.get(context: PubContext.pubGet, project: project, enforceLockfile: true);
+  Future<void> _pubGet(FlutterProject project, bool enforceLockfile) async =>
+      pub.get(context: PubContext.pubGet, project: project, enforceLockfile: enforceLockfile);
 
   Future<Map<String, Map<String, String>>> _upgrade(
     bool forceUpgrade,
