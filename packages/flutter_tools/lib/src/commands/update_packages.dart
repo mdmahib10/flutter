@@ -60,7 +60,7 @@ class UpdatePackagesCommand extends FlutterCommand {
       )
       ..addFlag(
         _keyUpgradeMajor,
-        help: 'Upgrade major versions as well. Only makes sense with --force-upgrade.',
+        help: 'Upgrade major versions as well. Only makes sense with force-upgrade.',
       )
       ..addFlag(
         _keyCrash,
