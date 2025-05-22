@@ -65,6 +65,10 @@ class UpdatePackagesCommand extends FlutterCommand {
         help: 'Upgrade major versions as well. Only makes sense with force-upgrade.',
       )
       ..addFlag(
+        _keyExcludeTools,
+        help: "Don't update the deps in tools. For example when unpinning a dep.",
+      )
+      ..addFlag(
         _keyCrash,
         help: 'For Flutter CLI testing only, forces this command to throw an unhandled exception.',
         negatable: false,
@@ -78,6 +82,7 @@ class UpdatePackagesCommand extends FlutterCommand {
   final String _keyCherryPickVersion = 'cherry-pick-version';
   final String _keyOffline = 'offline';
   final String _keyUpgradeMajor = 'upgrade-major';
+  final String _keyExcludeTools = 'exclude-tools';
   final String _keyCrash = 'crash';
 
   static const Set<String> fixedPackages = <String>{'test_api', 'test_core'};
@@ -138,7 +143,8 @@ class UpdatePackagesCommand extends FlutterCommand {
     final bool offline = boolArg(_keyOffline);
     final String? cherryPickPackage = stringArg(_keyCherryPickPackage);
     final String? cherryPickVersion = stringArg(_keyCherryPickVersion);
-    final bool relaxToAny = boolArg('upgrade-major');
+    final bool relaxToAny = boolArg(_keyUpgradeMajor);
+    final bool excludeTools = boolArg(_keyExcludeTools);
 
     if (boolArg('crash')) {
       throw StateError('test crash please ignore.');
@@ -192,13 +198,15 @@ class UpdatePackagesCommand extends FlutterCommand {
       _verifyPubspecs(packages);
     }
     if (forceUpgrade || cherryPick != null) {
-      final ResolvedDependencies toolDeps = await _upgrade(
-        forceUpgrade,
-        cherryPick,
-        toolProject,
-        relaxToAny,
-      );
-      _updatePubspec(toolProject.directory, toolDeps);
+      if (excludeTools) {
+        final ResolvedDependencies toolDeps = await _upgrade(
+          forceUpgrade,
+          cherryPick,
+          toolProject,
+          relaxToAny,
+        );
+        _updatePubspec(toolProject.directory, toolDeps);
+      }
 
       final ResolvedDependencies deps = await _upgrade(
         forceUpgrade,
