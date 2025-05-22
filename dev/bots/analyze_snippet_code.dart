@@ -77,6 +77,8 @@ import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart';
 import 'package:yaml_edit/yaml_edit.dart' show YamlEditor;
 
+const String _pubspecName = 'pubspec.yaml';
+
 final String _flutterRoot = path.dirname(path.dirname(path.dirname(path.fromUri(Platform.script))));
 final String _packageFlutter = path.join(_flutterRoot, 'packages', 'flutter', 'lib');
 final String _defaultDartUiLocation = path.join(
@@ -176,7 +178,7 @@ Future<void> main(List<String> arguments) async {
       if (entity is! Directory) {
         continue;
       }
-      final File pubspec = File(path.join(entity.path, 'pubspec.yaml'));
+      final File pubspec = File(path.join(entity.path, _pubspecName));
       if (!pubspec.existsSync()) {
         throw StateError("Unexpected package '${entity.path}' found in packages directory");
       }
@@ -991,8 +993,8 @@ class _SnippetChecker {
   /// Creates the configuration files necessary for the analyzer to consider
   /// the temporary directory a package, and sets which lint rules to enforce.
   void _createConfigurationFiles() {
-    final String targetWorkspacePubspecPath = path.join(_tempDirectory.path, 'pubspec.yaml');
-    _copyPubspec(targetWorkspacePubspecPath, path.join(_flutterRoot, 'pubspec.yaml'));
+    final String targetWorkspacePubspecPath = path.join(_tempDirectory.path, _pubspecName);
+    _copyPubspec(targetWorkspacePubspecPath, path.join(_flutterRoot, _pubspecName));
     final File targetWorkspacePubspec = File(targetWorkspacePubspecPath);
     final String pubspec = targetWorkspacePubspec.readAsStringSync();
 
@@ -1001,8 +1003,8 @@ class _SnippetChecker {
     targetWorkspacePubspec.writeAsStringSync(yamlEditor.toString());
 
     _copyPubspec(
-      path.join(_contentDirectory.path, 'pubspec.yaml'),
-      path.join(_flutterRoot, 'examples', 'api', 'pubspec.yaml'),
+      path.join(_contentDirectory.path, _pubspecName),
+      path.join(_flutterRoot, 'examples', 'api', _pubspecName),
     );
     final File targetAnalysisOptions = File(
       path.join(_contentDirectory.path, 'analysis_options.yaml'),
@@ -1029,8 +1031,9 @@ class _SnippetChecker {
       if (!sourcePubSpec.existsSync()) {
         throw 'Cannot find pubspec.yaml at ${sourcePubSpec.path}, which is also used to analyze code snippets.';
       }
-      targetPubSpec.createSync(recursive: true);
-      targetPubSpec.writeAsStringSync(sourcePubSpec.readAsStringSync());
+      targetPubSpec
+        ..createSync(recursive: true)
+        ..writeAsStringSync(sourcePubSpec.readAsStringSync());
     }
   }
 
@@ -1197,6 +1200,7 @@ class _SnippetChecker {
     if (stderr.isNotEmpty && stderr.any((String line) => line.isNotEmpty)) {
       throw _SnippetCheckerException('Cannot analyze dartdocs; unexpected error output:\n$stderr');
     }
+    // Skip the boring part of the analysis, the preface - we only want the errors.
     return stdout
         .skipWhile((String line) => !line.startsWith('Analyzing packages...'))
         .skip(1)

@@ -72,6 +72,7 @@ dependencies:
 
   dart_style: 3.1.0
 
+  # The below dependencies are transitive and are here to pin them to a specific version.
   _fe_analyzer_shared: 82.0.0
   analyzer: 7.4.5
   boolean_selector: 2.1.2
