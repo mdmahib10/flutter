@@ -450,9 +450,15 @@ class UpdatePackagesCommand extends FlutterCommand {
   String _computeChecksum(String pubspecString) {
     final Pubspec pubspec = Pubspec.parse(pubspecString);
     return SplayTreeMap<String, Dependency>.from(<String, Dependency>{
-          ...pubspec.dependencies,
-          ...pubspec.devDependencies,
-          ...pubspec.dependencyOverrides,
+          ...pubspec.dependencies.map(
+            (String key, Dependency value) => MapEntry<String, Dependency>('dep:$key', value),
+          ),
+          ...pubspec.devDependencies.map(
+            (String key, Dependency value) => MapEntry<String, Dependency>('dev_dep:$key', value),
+          ),
+          ...pubspec.dependencyOverrides.map(
+            (String key, Dependency value) => MapEntry<String, Dependency>('dep_over:$key', value),
+          ),
         }).entries
         .map((MapEntry<String, Dependency> entry) => '${entry.key}${entry.value}')
         .join()

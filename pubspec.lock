@@ -107,7 +107,7 @@ packages:
     source: hosted
     version: "0.2.0"
   cli_util:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: cli_util
       sha256: ff6785f7e9e3c38ac98b2fb035701789de90154024a75b6cb926445e83197d1c
@@ -179,7 +179,7 @@ packages:
     source: hosted
     version: "1.0.8"
   dart_style:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: dart_style
       sha256: "5b236382b47ee411741447c1f1e111459c941ea1b3f2b540dde54c210a3662af"
@@ -219,7 +219,7 @@ packages:
     source: hosted
     version: "2.1.4"
   ffigen:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: ffigen
       sha256: "72d732c33557fc0ca9b46379d3deff2dadbdc539696dc0b270189e2989be20ef"
@@ -235,7 +235,7 @@ packages:
     source: hosted
     version: "7.0.1"
   file_testing:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: file_testing
       sha256: eb0c85fd118ddc0d41c295c09f64e0924c256b071087cdc9828d5372c80d554d
@@ -259,7 +259,7 @@ packages:
     source: hosted
     version: "1.0.2"
   flutter_lints:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: flutter_lints
       sha256: "5398f14efa795ffb7a33e9b6a08798b26a180edac4ad7db3f231e40f82ce11e1"
@@ -451,7 +451,7 @@ packages:
     source: hosted
     version: "3.0.2"
   lints:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: lints
       sha256: c35bb79562d980e9a453fc715854e1ed39e24e7d0297a880ef54e17f9874a9d7
@@ -595,7 +595,7 @@ packages:
     source: hosted
     version: "2.3.0"
   pedantic:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: pedantic
       sha256: "67fc27ed9639506c856c840ccce7594d0bdcd91bc8d53d6e52359449a1d50602"
@@ -683,7 +683,7 @@ packages:
     source: hosted
     version: "1.5.0"
   quiver:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: quiver
       sha256: ea0b925899e64ecdfbf9c7becb60d5b50e706ade44a85b2363be2a22d88117d2
@@ -1096,7 +1096,7 @@ packages:
     source: hosted
     version: "3.1.3"
   yaml_edit:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: yaml_edit
       sha256: fb38626579fb345ad00e674e2af3a5c9b0cc4b9bfb8fd7f7ff322c7c9e62aef5
