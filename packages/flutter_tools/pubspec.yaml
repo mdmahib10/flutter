@@ -12,7 +12,7 @@ dependencies:
   # https://github.com/flutter/flutter/blob/main/docs/infra/Updating-dependencies-in-Flutter.md
   archive: 3.6.1
   args: 2.7.0
-  dds: 5.0.0
+  dds: 5.0.1
   dwds: 24.3.10
   code_builder: 4.10.1
   completion: 1.0.1
@@ -24,11 +24,11 @@ dependencies:
   html: 0.15.6
   http: 1.4.0
   intl: 0.20.2
-  meta: 1.16.0
+  meta: 1.17.0
   multicast_dns: 0.3.3
   mustache_template: 2.0.0
   package_config: 2.2.0
-  process: 5.0.3
+  process: 5.0.4
   fake_async: 1.3.3
   stack_trace: 1.12.1
   usage: 4.1.1
@@ -66,7 +66,7 @@ dependencies:
   test_api: 0.7.4
   test_core: 0.6.8
 
-  vm_service: 15.0.0
+  vm_service: 15.0.1
 
   standard_message_codec: 0.0.1+4
 
@@ -82,7 +82,7 @@ dependencies:
   clock: 1.1.2
   csslib: 1.0.2
   dap: 1.4.0
-  dds_service_extensions: 2.0.1
+  dds_service_extensions: 2.0.2
   devtools_shared: 11.2.1
   dtd: 2.5.1
   extension_discovery: 2.1.0
@@ -101,7 +101,7 @@ dependencies:
   source_maps: 0.10.13
   source_span: 1.10.1
   sprintf: 7.0.0
-  sse: 4.1.7
+  sse: 4.1.8
   string_scanner: 1.4.1
   sync_http: 0.3.1
   term_glyph: 1.2.2
@@ -126,4 +126,4 @@ dartdoc:
   # Exclude this package from the hosted API docs.
   nodoc: true
 
-# PUBSPEC CHECKSUM: 3v90hr
+# PUBSPEC CHECKSUM: n8ikgi

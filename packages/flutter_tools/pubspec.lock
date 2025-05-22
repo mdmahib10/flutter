@@ -181,18 +181,18 @@ packages:
     dependency: "direct main"
     description:
       name: dds
-      sha256: "4e206d308bd94595af42e4a561948ef8dba211c9db47f4360c48a5a1f8b44cb5"
+      sha256: "575cffd0474c3c334351c7523484ba09ba46b2b39f5cbd767582a64d1ed485e3"
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.0"
+    version: "5.0.1"
   dds_service_extensions:
     dependency: "direct main"
     description:
       name: dds_service_extensions
-      sha256: "5a5f0f9af646505f5bb21159c78ae5c275cd8bdb99e1a8e27f2f395c49568743"
+      sha256: c514114300ab30a95903fed1fdcf2949d057a0ea961168ec890a2b415b3ec52a
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.1"
+    version: "2.0.2"
   devtools_shared:
     dependency: "direct main"
     description:
@@ -405,10 +405,10 @@ packages:
     dependency: "direct main"
     description:
       name: meta
-      sha256: e3641ec5d63ebf0d9b41bd43201a66e3fc79a65db5f61fc181f04cd27aab950c
+      sha256: "23f08335362185a5ea2ad3a4e597f1375e78bce8a040df5c600c8d3552ef2394"
       url: "https://pub.dev"
     source: hosted
-    version: "1.16.0"
+    version: "1.17.0"
   mime:
     dependency: "direct main"
     description:
@@ -493,10 +493,10 @@ packages:
     dependency: "direct main"
     description:
       name: process
-      sha256: "107d8be718f120bbba9dcd1e95e3bd325b1b4a4f07db64154635ba03f2567a0d"
+      sha256: "44b4226c0afd4bc3b7c7e67d44c4801abd97103cf0c84609e2654b664ca2798c"
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.3"
+    version: "5.0.4"
   pub_semver:
     dependency: "direct main"
     description:
@@ -589,10 +589,10 @@ packages:
     dependency: "direct main"
     description:
       name: sse
-      sha256: "4389a01d5bc7ef3e90fbc645f8e7c6d8711268adb1f511e14ae9c71de47ee32b"
+      sha256: fcc97470240bb37377f298e2bd816f09fd7216c07928641c0560719f50603643
       url: "https://pub.dev"
     source: hosted
-    version: "4.1.7"
+    version: "4.1.8"
   stack_trace:
     dependency: "direct main"
     description:
@@ -701,10 +701,10 @@ packages:
     dependency: "direct main"
     description:
       name: vm_service
-      sha256: ddfa8d30d89985b96407efce8acbdd124701f96741f2d981ca860662f1c0dc02
+      sha256: "6f82e9ee8e7339f5d8b699317f6f3afc17c80a68ebef1bc0d6f52a678c14b1e6"
       url: "https://pub.dev"
     source: hosted
-    version: "15.0.0"
+    version: "15.0.1"
   vm_service_interface:
     dependency: "direct main"
     description:
